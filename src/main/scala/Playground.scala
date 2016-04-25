@@ -1,25 +1,53 @@
 import akka.actor._
 
-case class Account(val name: String, val balance: Double) {
+case class Withdraw(id: String, amount: Double)
+case class Deposit(id: String, amount: Double)
 
-  def deposit(amount : Double): Account = {
-    new Account(name, balance + amount)
+object Bank {
+
+  trait Account[T] {
+    protected balance : Double = 0.0
+
+    def deposit(amount: Double): Account[T] = {
+
+    }
+    def withdraw(amount: Double): Account[T]
   }
 }
+abstract class Account(id: String, balance: Double) {
+  def deposit(amount: Double): Account =
+  def withdraw(amount: Double): Account
+}
+class SavingsAccount(id: String, balance: Double = 0.0) {
 
-case class SavingsAccount(override val name: String, override val balance: Double) extends  Account(name: String, balance: Double) {
+  def deposit(amount: Double): SavingsAccount = {
+    new SavingsAccount(balance + amount)
+  }
 
   def withdraw (amount: Double): Either[SavingsAccount, UnsupportedOperationException] = {
     if (balance - amount < 0.0) {
       Right(throw new UnsupportedOperationException("Unable to withdraw more money than you have."))
     }
-    Left(new SavingsAccount(name, balance - amount))
+    Left(new SavingsAccount(balance - amount))
+  }
+
+}
+
+class CurrentAccount(id: String, balance: Double = 0.0) {
+
+  def withdraw (amount: Double): CurrentAccount = {
+    new CurrentAccount(balance - amount)
+  }
+
+  def deposit(amount : Double): CurrentAccount = {
+    new CurrentAccount(balance + amount)
   }
 }
 
-case class CurrentAccount(override val name: String, override val balance: Double) extends Account(name: String, balance: Double) {
+class Clerk extends Actor {
 
-  def withdraw (amount: Double): CurrentAccount = {
-    new CurrentAccount(name, balance - amount)
+  override def receive = {
+    case Withdraw(amount) => withdraw(amount)
+    case Deposit(amount)  => deposit(amount)
   }
 }
