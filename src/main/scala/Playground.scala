@@ -6,7 +6,6 @@ case class Deposit(id: String, amount: Double)
 object Bank {
 
   trait Account[T] {
-    protected balance : Double = 0.0
 
     def deposit(amount: Double): Account[T] = {
 
@@ -15,14 +14,11 @@ object Bank {
   }
 }
 abstract class Account(id: String, balance: Double) {
-  def deposit(amount: Double): Account =
+  def deposit(amount: Double): Account
   def withdraw(amount: Double): Account
 }
-class SavingsAccount(id: String, balance: Double = 0.0) {
 
-  def deposit(amount: Double): SavingsAccount = {
-    new SavingsAccount(balance + amount)
-  }
+class SavingsAccount(id: String, balance: Double = 0.0) {
 
   def withdraw (amount: Double): Either[SavingsAccount, UnsupportedOperationException] = {
     if (balance - amount < 0.0) {
@@ -38,16 +34,12 @@ class CurrentAccount(id: String, balance: Double = 0.0) {
   def withdraw (amount: Double): CurrentAccount = {
     new CurrentAccount(balance - amount)
   }
-
-  def deposit(amount : Double): CurrentAccount = {
-    new CurrentAccount(balance + amount)
-  }
 }
 
 class Clerk extends Actor {
 
   override def receive = {
-    case Withdraw(amount) => withdraw(amount)
+    case Withdraw(amount) => withdraw(amount) // type
     case Deposit(amount)  => deposit(amount)
   }
 }
